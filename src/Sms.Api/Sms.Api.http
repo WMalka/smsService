@@ -1,0 +1,23 @@
+@baseUrl = http://localhost:5080
+
+### Send to two numbers (run twice: same key → same message, nothing new is sent)
+POST {{baseUrl}}/messages
+Content-Type: application/json
+Idempotency-Key: debug-1
+
+{ "to": ["050-1234567", "+972521112233"], "body": "Shift starts at 07:00" }
+
+### Validation error: second number is invalid → 400 with "to[1]"
+POST {{baseUrl}}/messages
+Content-Type: application/json
+
+{ "to": ["0501234567", "123"], "body": "Hello" }
+
+### Get one message (paste an id from a response above)
+GET {{baseUrl}}/messages/00000000-0000-0000-0000-000000000000
+
+### List, newest first; pass nextCursor from the previous response as cursor
+GET {{baseUrl}}/messages?status=Pending&limit=20
+
+### Health
+GET {{baseUrl}}/health

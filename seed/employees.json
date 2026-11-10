@@ -1,0 +1,7 @@
+[
+  { "firstName": "Dana", "lastName": "Levi", "address": "Herzl 5, Rehovot", "phones": ["050-1234567", "+972521112233"] },
+  { "firstName": "Yossi", "lastName": "Cohen", "address": "Weizmann 12, Rehovot", "phones": ["0541234567"] },
+  { "firstName": "Noa", "lastName": "Mizrahi", "address": "Herzl 5, Rehovot", "phones": ["050-1234567", "053-9876543"] },
+  { "firstName": "Avi", "lastName": "Peretz", "address": "Hanasi 3, Ness Ziona", "phones": ["+972587654321"] },
+  { "firstName": "Maya", "lastName": "Friedman", "address": "Ha'atzmaut 40, Yavne", "phones": ["052-5550101", "054-5550102", "058-5550103"] }
+]

@@ -1,0 +1,3 @@
+# Keep LF in the repository so Dockerfiles, nginx.conf and scripts work the same on every OS.
+* text=auto eol=lf
+*.ps1 text eol=crlf

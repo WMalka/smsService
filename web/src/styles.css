@@ -1,0 +1,51 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #f5f6f8; color: #1d2433; }
+main { max-width: 960px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.15rem; margin: 0 0 12px; }
+
+.card { background: #fff; border: 1px solid #dde1e7; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+label { display: block; font-weight: 600; margin: 8px 0 4px; }
+textarea, select { width: 100%; font: inherit; padding: 6px 8px; border: 1px solid #b8bfca; border-radius: 4px; }
+textarea[aria-invalid='true'] { border-color: #b42318; }
+button { font: inherit; padding: 6px 14px; border: 1px solid #2457c5; background: #2f6fed; color: #fff; border-radius: 4px; cursor: pointer; }
+button:disabled { opacity: 0.6; cursor: default; }
+button:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 2px; }
+
+.hint { margin: 4px 0; color: #5b6475; font-size: 0.875rem; }
+.hint.over { color: #b42318; font-weight: 600; }
+.field-errors { margin: 4px 0; padding-left: 20px; color: #b42318; font-size: 0.875rem; }
+.field-errors:empty { display: none; }
+.error { color: #b42318; }
+.success { color: #067647; }
+
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.toolbar h2 { margin: 0 auto 0 0; }
+.toolbar label { margin: 0; }
+.toolbar select { width: auto; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e6e9ee; vertical-align: top; }
+.messages .row { cursor: pointer; }
+.messages .row:hover { background: #f0f4ff; }
+.messages .body { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.detail > td { background: #fafbfc; }
+.recipients { font-size: 0.85rem; }
+.card > button { margin-top: 12px; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; border: 1px solid; }
+.badge-pending { background: #fef6e7; color: #8a5300; }
+.badge-sent { background: #eaf1ff; color: #1d4ed8; }
+.badge-delivered { background: #e7f6ec; color: #067647; }
+.badge-partiallysent { background: #f4ecff; color: #6b2fb3; }
+.badge-failed { background: #fdecea; color: #b42318; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .messages .body { max-width: 120px; }
+}
+
+/* Wide tables scroll inside their card instead of widening the page on phones. */
+.table-scroll { overflow-x: auto; }
+
