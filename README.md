@@ -213,7 +213,7 @@ The task asks to define assumptions instead of asking questions.
 
 ## 9. Time invested
 
-Actual time: __ hours
+About 3.5–4 hours in total, spread over several sessions rather than in one sitting.
 
 ---
 
@@ -223,8 +223,7 @@ AI was used, as the task allows. The full SPEC the development followed is [SPEC
 
 | Where | Why |
 |---|---|
-| Drafting and reviewing the SPEC: alternatives, trade-offs, risks | To weigh more options in the time limit. Every decision was discussed and chosen by me. |
-| Writing the code and tests from the SPEC (Claude Code, with sub-agents working in parallel on Core, Infrastructure + API, UI, and Docker) | To fit the work into the 4-hour limit and keep the code consistent with the SPEC. |
-| Running and checking the system end to end | To confirm the result works, not only that tests pass. |
+| Planning the SPEC, fixing it, weighing the decisions and looking for the best options | To compare more alternatives and trade-offs within the time limit. Every decision in the SPEC was reviewed and chosen by me. |
+| Writing the code and tests from the SPEC (Claude Code) | To fit the implementation into the time limit and keep it consistent with the SPEC. |
 
-I reviewed the result and can explain and change any part of it.
+I went through all the code and changed it to the way I want it. I can explain and modify any part of it.
