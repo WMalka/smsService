@@ -2,7 +2,7 @@
 
 # חלק ב' – מסמך הרחבה
 
-המסמך מתייחס לקוד בחלק א'. הפניות לקוד הן קישורים לקובץ ולשורה, למשל [DispatchPending.cs:27](src/Sms.Core/Application/DispatchPending.cs#L27).
+המסמך מתייחס לקוד בחלק א'. הפניות לקוד מציינות קובץ ומתודה, למשל `DispatchPending.cs` ← `SendDueRecipientsAsync`.
 
 ## 1. ספק שני
 
@@ -30,23 +30,53 @@
 
 - **השרת קורס באמצע שליחה:**
   - ההודעה נשמרת במסד הנתונים לפני שה-API מחזיר 202, כך שהיא לא הולכת לאיבוד.
-    - בקוד: [MessagesController.cs:35](src/Sms.Api/MessagesController.cs#L35) מחכה לשמירה ורק אז מחזיר 202 ([שורה 37](src/Sms.Api/MessagesController.cs#L37)). השמירה עצמה ב-[SendMessage.cs:19](src/Sms.Core/Application/SendMessage.cs#L19) וב-[MessageRepository.cs:23](src/Sms.Infrastructure/Persistence/MessageRepository.cs#L23).
+    - בקוד: `MessagesController.cs` ← `Send` מחכה לשמירה ורק אז מחזיר 202. השמירה עצמה ב-`SendMessage.cs` ← `ExecuteAsync` וב-`MessageRepository.cs` ← `AddAsync`.
   - לפני הקריאה לספק, ה-worker נועל את הנמען לדקה, ושומר את הנעילה.
-    - בקוד: [DispatchPending.cs:27-29](src/Sms.Core/Application/DispatchPending.cs#L27-L29), שקורא ל-`LockRecipient` ב-[Message.cs:57](src/Sms.Core/Domain/Message.cs#L57). משך הנעילה הוא `LockSeconds` ב-`appsettings.json`.
+    - בקוד: `DispatchPending.cs` ← `SendDueRecipientsAsync`, שקורא ל-`Message.cs` ← `LockRecipient`. משך הנעילה הוא `LockSeconds` ב-`appsettings.json`.
   - אחרי עלייה מחדש הנעילה פגה, והנמען נשלח שוב עם אותו `reference`, שהוא מזהה הנמען. הספק אמור לזהות שזו חזרה ולא לשלוח שוב.
-    - בקוד: נמען שהנעילה שלו פגה נבחר שוב ב-`DueForSending`, ב-[Message.cs:47](src/Sms.Core/Domain/Message.cs#L47). מזהה הנמען נשלח כ-`reference` ב-[DispatchPending.cs:32](src/Sms.Core/Application/DispatchPending.cs#L32), ומגיע לספק ב-[MockSmsProvider.cs:51](src/Sms.Infrastructure/Sending/MockSmsProvider.cs#L51).
+    - בקוד: נמען שהנעילה שלו פגה נבחר שוב ב-`Message.cs` ← `DueForSending`. מזהה הנמען נשלח כ-`reference` ב-`DispatchPending.cs` ← `SendDueRecipientsAsync`, ומגיע לספק ב-`MockSmsProvider.cs` ← `SendAsync`.
   - **פער:** זו הנחה שלא אומתה מול הספק המדומה. אם הספק לא מזהה חזרות, ייתכנו כפילויות במקרה של קריסה.
 - **המשתמש לוחץ פעמיים על שליחה:**
   - ב-UI הכפתור מושבת בזמן השליחה, וכל שליחה מקבלת `Idempotency-Key` אחד.
-    - בקוד: המפתח נוצר ב-[SendForm.tsx:58](web/src/SendForm.tsx#L58), הכפתור מושבת ב-[SendForm.tsx:111](web/src/SendForm.tsx#L111), והמפתח נשלח בכותרת ב-[api.ts:62](web/src/api.ts#L62).
+    - בקוד: המפתח נוצר ב-`SendForm.tsx` ← `onSubmit`, הכפתור מושבת בקומפוננטה `SendForm` באותו קובץ, והמפתח נשלח בכותרת ב-`api.ts` ← `sendMessage`.
   - בשרת, `SendMessage` מחזיר את ההודעה המקורית בלי ליצור חדשה. אינדקס ייחודי תופס גם שתי בקשות שמגיעות באותו רגע.
-    - בקוד: הבדיקה אם המפתח כבר קיים ב-[SendMessage.cs:11](src/Sms.Core/Application/SendMessage.cs#L11). האינדקס הייחודי ב-[SmsDbContext.cs:28](src/Sms.Infrastructure/Persistence/SmsDbContext.cs#L28). התנגשות באינדקס הופכת לשגיאה ב-[MessageRepository.cs:28](src/Sms.Infrastructure/Persistence/MessageRepository.cs#L28), ונתפסת ב-[SendMessage.cs:21-24](src/Sms.Core/Application/SendMessage.cs#L21-L24), שמחזיר את ההודעה שנשמרה ראשונה.
+    - בקוד: הבדיקה אם המפתח כבר קיים ב-`SendMessage.cs` ← `ExecuteAsync`. האינדקס הייחודי ב-`SmsDbContext.cs` ← `OnModelCreating`. התנגשות באינדקס הופכת לשגיאה ב-`MessageRepository.cs` ← `AddAsync`, ונתפסת חזרה ב-`SendMessage.cs` ← `ExecuteAsync`, שמחזיר את ההודעה שנשמרה ראשונה.
 - **הספק מחזיר הצלחה אבל ההודעה לא הגיעה:**
   - הצלחה מהספק מסמנת את הנמען `Sent`, לא `Delivered`.
-    - בקוד: `RecordSendResult` ב-[Message.cs:77](src/Sms.Core/Domain/Message.cs#L77).
+    - בקוד: `Message.cs` ← `RecordSendResult`.
   - ה-worker שואל את הספק על הסטטוס. אישור מעביר ל-`Delivered`, ו"לא נמסר" מעביר ל-`Failed`.
-    - בקוד: `CheckDeliveryOfSentRecipientsAsync` ב-[DispatchPending.cs:41](src/Sms.Core/Application/DispatchPending.cs#L41). הקריאה לספק ב-[MockSmsProvider.cs:29-38](src/Sms.Infrastructure/Sending/MockSmsProvider.cs#L29-L38). המעבר בין הסטטוסים ב-`RecordDeliveryStatus`, ב-[Message.cs:101-110](src/Sms.Core/Domain/Message.cs#L101-L110).
+    - בקוד: `DispatchPending.cs` ← `CheckDeliveryOfSentRecipientsAsync`. הקריאה לספק ב-`MockSmsProvider.cs` ← `GetDeliveryStatusAsync`. המעבר בין הסטטוסים ב-`Message.cs` ← `RecordDeliveryStatus`.
   - נמען שלא אושר תוך 24 שעות נשאר `Sent`, וזה מצב "לא ידוע" גלוי: אפשר לסנן אותו (`GET /messages?status=Sent`) ולהתריע עליו (סעיף 4).
-    - בקוד: חלון 24 השעות ב-[DispatchPending.cs:44](src/Sms.Core/Application/DispatchPending.cs#L44) (`DeliveryTrackingHours`). הסטטוס של ההודעה כולה מחושב מהנמענים ב-`CalculateStatus`, ב-[Message.cs:149](src/Sms.Core/Domain/Message.cs#L149).
+    - בקוד: חלון 24 השעות ב-`DispatchPending.cs` ← `CheckDeliveryOfSentRecipientsAsync` (ההגדרה `DeliveryTrackingHours`). הסטטוס של ההודעה כולה מחושב מהנמענים ב-`Message.cs` ← `CalculateStatus`.
+
+## 4. ניטור
+
+**מה קיים היום:**
+- **בדיקת תקינות:** `GET /health` בודק שה-API עולה ושמסד הנתונים זמין.
+  - בקוד: `DependencyInjection.cs` ← `AddInfrastructure` (`AddDbContextCheck`), והנתיב נרשם ב-`Program.cs`.
+- **לוגים:** כל שליחה לספק נרשמת עם מזהה הנמען והתוצאה. מספר הטלפון מוסתר, ותוכן ההודעה לא נרשם.
+  - בקוד: `MockSmsProvider.cs` ← `SendAsync`. כשל בסבב של ה-worker נרשם כשגיאה ב-`DispatcherWorker.cs` ← `ExecuteAsync`.
+- **בדיקה ידנית:** `GET /messages?status=Failed`.
+
+**מה חסר:** `/health` יכול להחזיר "תקין" גם כשה-worker תקוע או כשהספק נפל, כי הוא בודק רק את ה-API ואת מסד הנתונים. לקוח ירגיש בבעיה לפני שנדע עליה.
+
+**מה נוסיף:**
+- **התרעה אחת מרכזית: בדיקת התאריך של ההודעה הישנה ביותר שעדיין ממתינה לשליחה (`Pending`).** אם היא ממתינה יותר מכמה דקות, משהו תקוע. מדד אחד תופס כמה סוגי תקלות: ספק שנפל, worker שנעצר ומסד נתונים איטי.
+- **אחוז הכישלונות** בשליחה לספק, בחלון של כמה דקות. קפיצה פתאומית אומרת שהספק דוחה הודעות.
+- **אחוז ההודעות שלא אושרו** (`Sent` שלא הפכו ל-`Delivered` אחרי זמן סביר). זה תופס את המקרה שבו הספק מחזיר הצלחה אבל ההודעות לא מגיעות.
+- **בדיקת תקינות ל-worker:** ה-worker ירשום את זמן הסבב האחרון שלו, ו-`/health` יחזיר "לא תקין" אם עבר יותר מדקה.
+
+**איך:** מדדים ב-OpenTelemetry, ודשבורד והתרעות בכלי הניטור של הארגון (למשל Grafana או Azure Monitor).
+
+**נימוק:** מודדים את מה שהמשתמש מרגיש, כלומר הודעות שלא יוצאות או לא מגיעות, ולא רק אם השרת חי.
+
+## מה לא הייתי עושה בשלב הזה, ולמה
+
+- **RabbitMQ או Kafka עכשיו:** הטבלה במסד הנתונים כבר משמשת כתור ושורדת קריסות. broker מוסיף שירות שצריך להפעיל ולתחזק, ולא מאיץ את השליחה, כי התקרה היא מגבלת הקצב של הספק. הוא נכנס רק אם PostgreSQL לא יעמוד בקצב (סעיף 2). Kafka לא מתאים גם אז: הוא בנוי לזרם אירועים, לא למשימות שכל אחת צריכה אישור וניסיון חוזר.
+- **פירוק ל-microservices:** שירות אחד עם הפרדה ברורה לשכבות (`Sms.Core`, `Sms.Infrastructure`, `Sms.Api`) מספיק. פירוק מוסיף תקשורת בין שירותים ונקודות כשל, בלי בעיה שהוא פותר היום.
+- **ניתוב דינמי בין ספקים לפי מחיר בזמן אמת:** לפני שיש נתונים על מחירים, מגבלות וזמינות, כלל פשוט (ספק זול כ-default וגיבוי) מספיק, וקל להסביר ולבדוק אותו (סעיף 1).
+- **Webhooks לאישור מסירה:** תלוי בכך שהספק תומך בהם, ודורש כתובת ציבורית. עד אז, בדיקות המסירה המתרווחות עם הזמן מספיקות.
+
+**העיקרון:** כל שינוי נכנס רק כשמדידה מראה שהוא נחוץ. מוסיפים מורכבות כשיש בעיה אמיתית לפתור, לא מראש.
 
 </div>

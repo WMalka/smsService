@@ -8,7 +8,7 @@ docker compose up --build
 
 UI: http://localhost:8080 · API + Swagger: http://localhost:5080/swagger
 
-The full design — every decision with its alternatives, advantages and disadvantages — is in **[SPEC.md](SPEC.md)**. This README is the short version.
+The full design — every decision with its alternatives, advantages and disadvantages — is in **[SPEC.md](SPEC.md)**. This README is the short version. The Part B extension document (second provider, load, failures, monitoring) is **[PART-B.md](PART-B.md)** (Hebrew).
 
 ---
 
